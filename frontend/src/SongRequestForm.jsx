@@ -5,7 +5,7 @@ export const statusLabels = {
   accepted: 'zaakceptowano',
 };
 
-const SPOTIFY_API = '/api/spotify/search';
+const DEEZER_API = '/api/deezer/search';
 
 function useDebounce(value, delay = 500) {
   const [debounced, setDebounced] = useState(value);
@@ -22,7 +22,6 @@ export default function SongRequestForm({ onSubmitted }) {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [requestedBy, setRequestedBy] = useState('');
   const [message, setMessage] = useState('');
   const titleRef = useRef(null);
   const cache = useRef(new Map());
@@ -49,7 +48,7 @@ export default function SongRequestForm({ onSubmitted }) {
     if (debouncedTitle.length >= 2) params.set('title', debouncedTitle);
     if (debouncedArtist.length >= 2) params.set('artist', debouncedArtist);
 
-    fetch(`${SPOTIFY_API}?${params}`)
+    fetch(`${DEEZER_API}?${params}`)
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled) {
@@ -77,7 +76,7 @@ export default function SongRequestForm({ onSubmitted }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selected || !requestedBy.trim()) return;
+    if (!selected) return;
     setMessage('');
     try {
       const res = await fetch('/api/songs', {
@@ -86,9 +85,9 @@ export default function SongRequestForm({ onSubmitted }) {
         body: JSON.stringify({
           title: selected.title,
           artist: selected.artist,
-          requested_by: requestedBy.trim(),
+          requested_by: 'Anonim',
           art_url: selected.art_url || null,
-          source: 'spotify',
+          source: 'deezer',
         }),
       });
       if (!res.ok) {
@@ -96,7 +95,6 @@ export default function SongRequestForm({ onSubmitted }) {
         throw new Error(data.error || 'Nie udało się wysłać zgłoszenia');
       }
       setSelected(null);
-      setRequestedBy('');
       setMessage('Piosenka została zgłoszona!');
       onSubmitted();
     } catch (err) {
@@ -210,25 +208,6 @@ export default function SongRequestForm({ onSubmitted }) {
                 ) : (
                   <span aria-hidden="true" />
                 )}
-              </dd>
-            </dl>
-          </fieldset>
-
-          <fieldset>
-            <legend>Kto zgłasza</legend>
-            <dl>
-              <dt><label htmlFor="requested_by">Twoje imię</label></dt>
-              <dd>
-                <input
-                  id="requested_by"
-                  type="text"
-                  required
-                  maxLength={100}
-                  value={requestedBy}
-                  onChange={(e) => setRequestedBy(e.target.value)}
-                  placeholder="Imię lub pseudonim"
-                  autoFocus
-                />
               </dd>
             </dl>
           </fieldset>

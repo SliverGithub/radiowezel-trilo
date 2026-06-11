@@ -6,7 +6,7 @@ import AdminPanel from './AdminPanel';
 export default function App() {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('public');
+  const [showAdmin, setShowAdmin] = useState(false);
 
   const fetchSongs = useCallback(async () => {
     setLoading(true);
@@ -25,53 +25,45 @@ export default function App() {
     return () => clearInterval(interval);
   }, [fetchSongs]);
 
+  if (showAdmin) {
+    return (
+      <AdminPanel
+        onRefresh={fetchSongs}
+        onBack={() => setShowAdmin(false)}
+      />
+    );
+  }
+
   return (
     <>
       <header>
-        <h1>Radio</h1>
+        <h1>Trilo Radio</h1>
         <p><small>Zgłaszanie piosenek do odtworzenia</small></p>
       </header>
 
-      <nav aria-label="Nawigacja główna">
-        <menu>
-          <li>
-            <button
-              onClick={() => setTab('public')}
-              aria-current={tab === 'public' ? 'page' : undefined}
-            >
-              Zgłoś piosenkę
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setTab('admin')}
-              aria-current={tab === 'admin' ? 'page' : undefined}
-            >
-              Panel administratora
-            </button>
-          </li>
-        </menu>
-      </nav>
-
-      <hr />
-
       <main>
-        {tab === 'public' ? (
-          <>
-            <SongRequestForm onSubmitted={fetchSongs} />
-            <hr />
-            <SongList songs={songs} loading={loading} />
-          </>
-        ) : (
-          <AdminPanel onRefresh={fetchSongs} />
-        )}
+        <SongRequestForm onSubmitted={fetchSongs} />
+        <hr />
+        <SongList songs={songs} loading={loading} />
       </main>
 
       <hr />
 
       <footer>
-        <p><small>Radio &mdash; system kolejkowania utworów</small></p>
+        <p><small>Trilo Radio &mdash; system kolejkowania utworów</small></p>
       </footer>
+
+      <button
+        className="admin-fab"
+        onClick={() => setShowAdmin(true)}
+        aria-label="Menedżer kolejki"
+        title="Menedżer kolejki"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      </button>
     </>
   );
 }

@@ -1,0 +1,444 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent: #110fa0;
+  --accent-hover: #0e0c88;
+  --accent-alpha: rgba(17, 15, 160, .15);
+  --accent-alpha2: rgba(17, 15, 160, .08);
+  --danger: #e74c3c;
+  --danger-hover: #c0392b;
+  --danger-alpha: rgba(231, 76, 60, .1);
+  --radius: 8px;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* --- light (default) --- */
+
+:root {
+  color-scheme: light;
+  --bg: #f5f5f5;
+  --surface: #fff;
+  --surface2: #eee;
+  --surface3: #ddd;
+  --border: #d5d5d5;
+  --border2: #c0c0c0;
+  --text: #1a1a1a;
+  --text-muted: #666;
+  --text-on-accent: #fff;
+  --hover-row: rgba(0,0,0,.03);
+  --hover-btn: rgba(0,0,0,.06);
+  --focus-ring: 0 0 0 3px rgba(17, 15, 160, .2);
+}
+
+/* --- dark --- */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --surface3: #2e2e2e;
+    --border: #333;
+    --border2: #444;
+    --text: #e0e0e0;
+    --text-muted: #999;
+    --text-on-accent: #fff;
+    --hover-row: rgba(255,255,255,.03);
+    --hover-btn: rgba(255,255,255,.06);
+    --focus-ring: 0 0 0 3px rgba(17, 15, 160, .35);
+  }
+}
+
+html {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { min-height: 100vh; }
+
+img { display: block; max-width: 100%; }
+
+a { color: var(--accent); text-decoration: none; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius);
+  font-size: .9rem;
+  font-weight: 500;
+  transition: background .15s, opacity .15s;
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+input {
+  font-family: inherit;
+  font-size: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .65rem .75rem;
+  width: 100%;
+  transition: border-color .15s;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+input::placeholder { color: var(--text-muted); }
+
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+legend {
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--accent);
+  padding: 0 .5rem;
+}
+
+dl { display: grid; gap: .4rem 1rem; }
+dt { font-size: .85rem; color: var(--text-muted); font-weight: 500; }
+dd { font-size: .95rem; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+}
+
+th {
+  text-align: left;
+  padding: .6rem .75rem;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border2);
+}
+
+td {
+  padding: .6rem .75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+tr:hover td {
+  background: var(--hover-row);
+}
+
+caption {
+  font-size: .85rem;
+  color: var(--text-muted);
+  text-align: left;
+  margin-bottom: .5rem;
+}
+
+tfoot td {
+  border-top: 2px solid var(--border2);
+  border-bottom: none;
+  font-size: .85rem;
+  color: var(--text-muted);
+  padding-top: .75rem;
+}
+
+[data-status] {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+[data-status="accepted"] { color: var(--accent); }
+
+[data-status="pending"] { color: #e67e22; }
+
+@media (prefers-color-scheme: dark) {
+  [data-status="pending"] { color: #f0a04b; }
+}
+
+hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+/* === layout === */
+
+#root {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+/* === header === */
+
+#root > header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+#root > header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+#root > header p {
+  color: var(--text-muted);
+  margin-top: .2rem;
+}
+
+/* === article cover art === */
+
+article {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+article header {
+  margin-bottom: 1.25rem;
+}
+
+article h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+article h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem 0 .5rem;
+}
+
+article header p { margin-top: .3rem; }
+
+small { font-size: .8rem; color: var(--text-muted); }
+
+/* === search results === */
+
+menu[aria-label="Wyniki wyszukiwania"] {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: .75rem;
+}
+
+menu[aria-label="Wyniki wyszukiwania"] button {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  width: 100%;
+  padding: .6rem .75rem;
+  background: var(--surface2);
+  color: var(--text);
+  text-align: left;
+  border-radius: 6px;
+}
+
+menu[aria-label="Wyniki wyszukiwania"] button:hover {
+  background: var(--surface3);
+}
+
+menu[aria-label="Wyniki wyszukiwania"] button img {
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+menu[aria-label="Wyniki wyszukiwania"] button span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+menu[aria-label="Wyniki wyszukiwania"] button strong {
+  font-size: .95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+menu[aria-label="Wyniki wyszukiwania"] button small {
+  font-size: .8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* === form footer === */
+
+article form footer {
+  display: flex;
+  gap: .6rem;
+  margin-top: 1rem;
+}
+
+/* === buttons === */
+
+button[type="submit"],
+button[title*="Zaakceptuj"] {
+  background: var(--accent);
+  color: var(--text-on-accent);
+  padding: .6rem 1.2rem;
+  font-weight: 600;
+}
+
+button[type="submit"]:hover,
+button[title*="Zaakceptuj"]:hover {
+  background: var(--accent-hover);
+}
+
+button[title*="Zaakceptuj"] {
+  padding: .4rem .8rem;
+  font-size: .8rem;
+}
+
+button[type="button"]:last-child,
+button[type="reset"],
+form footer button:last-child,
+article header aside button {
+  background: var(--surface2);
+  color: var(--text);
+  padding: .6rem 1.2rem;
+}
+
+button[type="button"]:last-child:hover,
+button[type="reset"]:hover,
+form footer button:last-child:hover,
+article header aside button:hover {
+  background: var(--surface3);
+}
+
+article header aside button {
+  padding: .4rem 1rem;
+  font-size: .8rem;
+  margin-bottom: .5rem;
+}
+
+/* === danger (remove) button === */
+
+button[title*="Usuń"] {
+  background: var(--danger) !important;
+  color: #fff !important;
+  padding: .4rem .8rem;
+  font-size: .8rem;
+  margin-left: .4rem;
+}
+
+button[title*="Usuń"]:hover {
+  background: var(--danger-hover) !important;
+}
+
+/* === details / summary === */
+
+details { margin-top: .75rem; }
+
+details summary {
+  cursor: pointer;
+  display: block;
+}
+
+details summary h3 {
+  display: inline;
+  font-size: 1rem;
+}
+
+details summary::marker {
+  color: var(--accent);
+}
+
+/* === output messages === */
+
+output[role="status"] {
+  display: block;
+  margin-top: .75rem;
+  padding: .6rem .9rem;
+  background: var(--accent-alpha);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  font-size: .9rem;
+  color: var(--accent);
+}
+
+output[role="alert"] {
+  display: block;
+  margin-top: .75rem;
+  padding: .6rem .9rem;
+  background: var(--danger-alpha);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  font-size: .9rem;
+  color: var(--danger);
+}
+
+/* === footer === */
+
+#root > footer {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* === article cover art === */
+
+article dd img {
+  border-radius: 4px;
+}
+
+/* === floating admin button === */
+
+.admin-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  background: var(--accent);
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  z-index: 100;
+  transition: background .15s, transform .15s, box-shadow .15s;
+}
+
+.admin-fab:hover {
+  background: var(--accent-hover);
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+}
+
+/* === back button === */
+
+.back-btn {
+  background: transparent;
+  color: var(--text-muted);
+  padding: .3rem .5rem;
+  font-size: .85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: .75rem;
+}
+
+.back-btn:hover {
+  color: var(--text);
+  background: var(--surface2);
+}

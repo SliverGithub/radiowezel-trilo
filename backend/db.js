@@ -14,7 +14,6 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     artist TEXT NOT NULL,
-    requested_by TEXT NOT NULL,
     url TEXT,
     source TEXT,
     art_url TEXT,
@@ -37,6 +36,8 @@ for (const col of [
   try { db.exec(`ALTER TABLE ${col[0]} ADD COLUMN ${col[1]} ${col[2]}`); } catch {}
 }
 
+try { db.exec('ALTER TABLE songs DROP COLUMN requested_by'); } catch {}
+
 const BCRYPT_ROUNDS = 10;
 
 const insertAdmin = db.prepare(
@@ -49,7 +50,7 @@ export function initAdmin() {
 }
 
 export const addSong = db.prepare(
-  'INSERT INTO songs (title, artist, requested_by, url, source, art_url) VALUES (?, ?, ?, ?, ?, ?)'
+  'INSERT INTO songs (title, artist, url, source, art_url) VALUES (?, ?, ?, ?, ?)'
 );
 
 export const getAllSongs = db.prepare(

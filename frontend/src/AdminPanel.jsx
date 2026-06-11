@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { statusLabels } from './SongRequestForm';
 
-export default function AdminPanel({ onRefresh }) {
+export default function AdminPanel({ onRefresh, onBack }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [token, setToken] = useState(localStorage.getItem('admin_token'));
@@ -33,14 +33,16 @@ export default function AdminPanel({ onRefresh }) {
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
     setToken(null);
+    onBack();
   };
 
   if (!token) {
     return (
       <article>
         <header>
-          <h2>Logowanie administratora</h2>
-          <p><small>Dostęp tylko dla osób zarządzających kolejką utworów.</small></p>
+          <button className="back-btn" onClick={onBack} aria-label="Wróć">&larr; Powrót</button>
+          <h2>Menedżer kolejki</h2>
+          <p><small>Zaloguj się, aby zarządzać kolejką utworów.</small></p>
         </header>
 
         <form onSubmit={handleLogin} aria-label="Formularz logowania">
@@ -91,11 +93,12 @@ export default function AdminPanel({ onRefresh }) {
   return (
     <article>
       <header>
-        <h2>Panel administratora</h2>
         <aside>
+          <button className="back-btn" onClick={onBack} aria-label="Wróć">&larr; Powrót</button>
           <button onClick={handleLogout}>Wyloguj się</button>
         </aside>
-        <p><small>Zalogowano jako <strong>admin</strong>. Zarządzaj kolejką poniżej — akceptuj oczekujące utwory lub usuwaj niechciane zgłoszenia.</small></p>
+        <h2>Menedżer kolejki</h2>
+        <p><small>Zalogowano jako <strong>admin</strong>. Akceptuj oczekujące utwory lub usuwaj niechciane zgłoszenia.</small></p>
       </header>
 
       <hr />
@@ -158,14 +161,12 @@ function AdminQueue({ token, onRefresh }) {
           <col />
           <col />
           <col />
-          <col />
         </colgroup>
         <thead>
           <tr>
             <th scope="col" />
             <th scope="col">Tytuł</th>
             <th scope="col">Wykonawca</th>
-            <th scope="col">Zgłoszony przez</th>
             <th scope="col">Status</th>
             <th scope="col">Akcje</th>
           </tr>
@@ -180,8 +181,7 @@ function AdminQueue({ token, onRefresh }) {
               </td>
               <td><strong>{song.title}</strong></td>
               <td>{song.artist}</td>
-              <td>{song.requested_by}</td>
-              <td>
+              <td data-status={song.status}>
                 <small>{statusLabels[song.status] || song.status}</small>
               </td>
               <td>
@@ -205,7 +205,7 @@ function AdminQueue({ token, onRefresh }) {
         </tbody>
         <tfoot>
           <tr>
-            <td colSpan={6}>
+            <td colSpan={5}>
               <small>
                 Oczekujące: <strong>{pending.length}</strong> &bull; Zaakceptowane: <strong>{accepted.length}</strong>
               </small>

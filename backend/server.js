@@ -18,13 +18,10 @@ import {
 import { extractMetadata } from './extract.js';
 
 const {
-  SPOTIFY_CLIENT_ID,
-  SPOTIFY_CLIENT_SECRET,
-  JWT_SECRET = 'radio-secret-change-in-production',
+  JWT_SECRET: _jwt = 'radio-secret-change-in-production',
   PORT = '3001',
 } = process.env;
-
-let spotifyToken = { access_token: '', expires_at: 0 };
+const JWT_SECRET = _jwt || 'radio-secret-change-in-production';
 
 // --- search cache with TTL ---
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
@@ -35,15 +32,15 @@ function cacheSet(key, value) {
   setTimeout(() => searchCache.delete(key), CACHE_TTL);
 }
 
-// --- traffic queue (keeps Spotify requests under rate limit) ---
-const QUEUE_DELAY = 500; // ms between requests (2/sec, safe under 180/min limit)
-const spotifyQueue = [];
+// --- traffic queue (keeps API requests under rate limit) ---
+const QUEUE_DELAY = 500; // ms between requests
+const apiQueue = [];
 let queueRunning = false;
 
 async function drainQueue() {
-  if (queueRunning || spotifyQueue.length === 0) return;
+  if (queueRunning || apiQueue.length === 0) return;
   queueRunning = true;
-  const { resolve, run } = spotifyQueue.shift();
+  const { resolve, run } = apiQueue.shift();
   try {
     const result = await run();
     resolve(result);
@@ -58,28 +55,9 @@ async function drainQueue() {
 
 function enqueue(run) {
   return new Promise((resolve) => {
-    spotifyQueue.push({ resolve, run });
+    apiQueue.push({ resolve, run });
     drainQueue();
   });
-}
-
-async function getSpotifyToken() {
-  if (Date.now() < spotifyToken.expires_at) return spotifyToken.access_token;
-  const basic = Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64');
-  const resp = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${basic}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: 'grant_type=client_credentials',
-  });
-  const data = await resp.json();
-  spotifyToken = {
-    access_token: data.access_token,
-    expires_at: Date.now() + (data.expires_in - 60) * 1000,
-  };
-  return spotifyToken.access_token;
 }
 
 initAdmin();
@@ -138,74 +116,64 @@ function authMiddleware(req, res, next) {
 
 // --- public routes ---
 
-app.get('/api/spotify/search', async (req, res) => {
+app.get('/api/deezer/search', async (req, res) => {
   const title = cleanText(req.query.title || '', 100);
   const artist = cleanText(req.query.artist || '', 100);
   const limit = Math.min(Math.max(parseInt(req.query.limit) || 12, 1), 25);
   const query = [title, artist].filter(Boolean).join(' ');
   if (!query) return res.status(400).json({ error: 'title or artist parameter required' });
 
-  const cacheKey = `${query}:${limit || 12}`.toLowerCase();
+  const cacheKey = `${query}:${limit}`.toLowerCase();
   if (searchCache.has(cacheKey)) {
     return res.json(searchCache.get(cacheKey));
   }
 
   try {
-    const token = await getSpotifyToken();
-    const params = new URLSearchParams({
-      q: `track:${query}`,
-      type: 'track',
-      limit: limit || '12',
-    });
-    const searchUrl = `https://api.spotify.com/v1/search?${params}`;
+    const params = new URLSearchParams({ q: query, limit: String(limit) });
+    const searchUrl = `https://api.deezer.com/search?${params}`;
 
     const result = await enqueue(async () => {
-      const resp = await fetch(searchUrl, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (resp.status === 429) {
-        throw new Error('Spotify rate limit hit');
-      }
+      const resp = await fetch(searchUrl);
+      if (resp.status === 429) throw new Error('API rate limit hit');
       return resp.json();
     });
 
     if (result._error) throw new Error(result._error);
 
-    const tracks = (result.tracks?.items || []).map((track) => ({
-      id: track.id,
-      title: track.name,
-      artist: track.artists.map((a) => a.name).join(', '),
-      album: track.album.name,
-      art_url: track.album.images?.[0]?.url || null,
-      art_thumb: track.album.images?.[2]?.url || track.album.images?.[0]?.url || null,
+    const tracks = (result.data || []).map((track) => ({
+      id: String(track.id),
+      title: track.title,
+      artist: track.artist?.name || '',
+      album: track.album?.title || '',
+      art_url: track.album?.cover_big || track.album?.cover_medium || null,
+      art_thumb: track.album?.cover_small || track.album?.cover_medium || null,
     }));
 
     cacheSet(cacheKey, tracks);
     res.json(tracks);
   } catch (err) {
-    if (err.message === 'Spotify rate limit hit') {
+    if (err.message === 'API rate limit hit') {
       return res.status(429).json({ error: 'Za Dużo Zapytań, Spróbuj Później' });
     }
-    res.status(502).json({ error: 'Spotify API unavailable' });
+    res.status(502).json({ error: 'Deezer API unavailable' });
   }
 });
 
 app.post('/api/songs', rateLimit, (req, res) => {
   const title = cleanText(req.body.title);
   const artist = cleanText(req.body.artist);
-  const requested_by = cleanText(req.body.requested_by, 100);
   const url = cleanUrl(req.body.url);
   const art_url = cleanUrl(req.body.art_url);
   const source = cleanText(req.body.source, 50);
 
-  if (!title || !artist || !requested_by) {
-    return res.status(400).json({ error: 'title, artist, and requested_by are required' });
+  if (!title || !artist) {
+    return res.status(400).json({ error: 'title and artist are required' });
   }
-  if (title.length < 1 || artist.length < 1 || requested_by.length < 1) {
+  if (title.length < 1 || artist.length < 1) {
     return res.status(400).json({ error: 'Fields cannot be empty' });
   }
 
-  const result = addSong.run(title, artist, requested_by, url, source, art_url);
+  const result = addSong.run(title, artist, url, source, art_url);
   res.status(201).json({ id: result.lastInsertRowid, message: 'Song request submitted' });
 });
 

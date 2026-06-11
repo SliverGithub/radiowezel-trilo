@@ -52,7 +52,6 @@ function SongsTable({ songs }) {
           <th scope="col" />
           <th scope="col">Tytuł</th>
           <th scope="col">Wykonawca</th>
-          <th scope="col">Zgłoszony przez</th>
           <th scope="col">Status</th>
         </tr>
       </thead>
@@ -66,8 +65,7 @@ function SongsTable({ songs }) {
             </td>
             <td><strong>{song.title}</strong></td>
             <td>{song.artist}</td>
-            <td>{song.requested_by}</td>
-            <td>{statusLabels[song.status] || song.status}</td>
+            <td data-status={song.status}>{statusLabels[song.status] || song.status}</td>
           </tr>
         ))}
       </tbody>
